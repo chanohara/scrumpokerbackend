@@ -44,7 +44,7 @@ router.post('/', function (req, res) {
     console.log(`Session for room ${roomId} and user ${userName} created`);
   });
 
-  res.send('Ok');
+  res.status(200).json({roomId: roomId});
 })
 
 // Join a room 

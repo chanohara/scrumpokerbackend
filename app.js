@@ -4,6 +4,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const cors = require('cors');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -19,6 +20,16 @@ app.use(cookieSession({
   name: 'session',
   keys: ['supersecretkey','key2'],
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
+app.use(cors({
+  origin: 'http://localhost:3001'
 }));
 
 app.use(logger('dev'));
