@@ -33,7 +33,7 @@ router.post('/', function (req, res) {
   });
 
   // insert admin user
-  db.run(`INSERT INTO user(Id,name) VALUES (?,?)`, [userId, userName], function(err) {
+  db.run(`INSERT INTO user(Id,name) VALUES (?,?) ON CONFLICT (Id) DO UPDATE SET name = excluded.name`, [userId, userName], function(err) {
     if (err) {return console.log(err.message);}
     console.log(`Admin user ${userName} with Id ${userId} created`);
   });
@@ -57,7 +57,7 @@ router.post('/join', function(req, res, next) {
   userId = req.session.userId;
 
   // insert user
-  db.run(`INSERT INTO user(Id,name) VALUES (?,?) ON CONFLICT (Id) DO UPDATE SET name = (?)`, [userId, userName], function(err) {
+  db.run(`INSERT INTO user(Id,name) VALUES (?,?) ON CONFLICT (Id) DO UPDATE SET name = excluded.name`, [userId, userName], function(err) {
     if (err) {return console.log(err.message);}
     console.log(`User ${userName} with Id ${userId} created`);
   });
