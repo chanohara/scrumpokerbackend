@@ -67,26 +67,58 @@ router.post('/join', function(req, res, next) {
     if (err) {return console.log(err.message);}
     console.log(`Session for room ${roomId} and user ${userName} created`);
   });
+  res.send('Ok');  
 });
+
+
+//async function getRoomOwnerAsync(db,roomId){
+//  db.get(`SELECT ownerId from room WHERE Id = (?)`, [roomId], (err, row) => 
+//   {
+//     if (err) { throw(err); }
+//     resolve(row);
+//   });    
+// }
+
+// function getRoomOwner(db,roomId) {
+//   return await getRoomOwnerAsync(db,roomId);
+// }
 
 // Reveal votes in a room
 router.post('/reveal', function(req, res, next) {
-
   // Check if user is admin
-  db.all(`SELECT ownerId from room WHERE roomId = (?)`, [req.body.roomId], (err, ownerId) => 
-  {
-    if (err) { throw(err); }
-    if (ownerId != req.session.userId){
-      res.status(500);
-    }
-  });  
-
+  // var ownerId = getRoomOwner(db, req.body.roomId);
+  // if (!ownerId || ownerId != req.session.userId){
+  //   res.status(500);
+  //   return;
+  // };  
   // Set room to revealed
-  db.run(`UPDATE room SET revealed = 1`, [], function(err) {
+  db.run(`UPDATE room SET revealed = 1 WHERE roomId = (?)`, [req.body.roomId], function(err) {
     if (err) {return console.log(err.message);}
     console.log(`Room ${req.body.roomId} revealed`);
   });  
+  res.send('Ok');
+});
 
+// Reset all votes back
+router.post('/reset', function(req, res, next) {
+  db.run(`UPDATE room SET revealed = 0 WHERE roomId = (?)`, [req.body.roomId], function(err) {
+    if (err) {return console.log(err.message);}
+    console.log(`Room ${req.body.roomId} is not revealed`);
+  });  
+  db.run(`UPDATE session SET current_vote = 0 WHERE roomId = (?)`, [req.body.roomId], function(err) {
+    if (err) {return console.log(err.message);}
+    console.log(`Votes are reset for room number ${req.body.roomId}`);
+  });  
+  res.send('Ok');
+});
+
+// Voting
+router.post('/vote', function(req, res, next) {
+  db.run(`UPDATE session SET current_vote = (?) WHERE roomId = (?) AND userId = (?)`, [req.body.vote, req.body.roomId, req.session.userId], function(err) {
+    if (err) {return console.log(err.message);}
+    console.log(`User ${req.session.userId} voted in room ${req.body.roomId} with ${req.body.vote}`);
+  });  
+  res.send('Ok');
 });
 
 module.exports = router;
