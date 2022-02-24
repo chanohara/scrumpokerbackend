@@ -21,7 +21,10 @@ router.post('/', function (req, res) {
   console.log(req.body);
   var userName = req.body.name;
   var roomId = Math.floor(Math.random() * 100000000);
-  var userId = Math.floor(Math.random() * 100000000);
+  
+  var userId;
+  if (!req.session.userId) { req.session.userId = Math.floor(Math.random() * 100000000); }
+  userId = req.session.userId;
 
   // insert room into table
   db.run(`INSERT INTO room(Id,ownerId,revealed) VALUES (?,?,?)`, [roomId, userId, 0], function(err) {
@@ -45,12 +48,16 @@ router.post('/', function (req, res) {
 })
 
 // Join a room 
-router.get('/room/join', function(req, res, next) {
+router.post('/join', function(req, res, next) {
   var userName = req.body.name;
   var roomId = req.body.roomId;
-  var userId = Math.floor(Math.random() * 100000000);
+
+  var userId;
+  if (!req.session.userId) { req.session.userId = Math.floor(Math.random() * 100000000); }
+  userId = req.session.userId;
+
   // insert user
-  db.run(`INSERT INTO user(Id,name) VALUES (?,?)`, [userId, userName], function(err) {
+  db.run(`INSERT INTO user(Id,name) VALUES (?,?) ON CONFLICT (Id) DO UPDATE SET name = (?)`, [userId, userName], function(err) {
     if (err) {return console.log(err.message);}
     console.log(`User ${userName} with Id ${userId} created`);
   });
