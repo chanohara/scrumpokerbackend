@@ -69,4 +69,24 @@ router.post('/join', function(req, res, next) {
   });
 });
 
+// Reveal votes in a room
+router.post('/reveal', function(req, res, next) {
+
+  // Check if user is admin
+  db.all(`SELECT ownerId from room WHERE roomId = (?)`, [req.body.roomId], (err, ownerId) => 
+  {
+    if (err) { throw(err); }
+    if (ownerId != req.session.userId){
+      res.status(500);
+    }
+  });  
+
+  // Set room to revealed
+  db.run(`UPDATE room SET revealed = 1`, [], function(err) {
+    if (err) {return console.log(err.message);}
+    console.log(`Room ${req.body.roomId} revealed`);
+  });  
+
+});
+
 module.exports = router;
