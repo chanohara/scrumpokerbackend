@@ -108,6 +108,8 @@ router.post('/reveal', function(req, res, next) {
     if (err) {return console.log(err.message);}
     console.log(`Room ${req.body.roomId} revealed`);
   });  
+
+  broadcast(req.app.locals.clients, "Do update");  
   res.send('Ok');
 });
 
@@ -121,6 +123,8 @@ router.post('/reset', function(req, res, next) {
     if (err) {return console.log(err.message);}
     console.log(`Votes are reset for room number ${req.body.roomId}`);
   });  
+  
+  broadcast(req.app.locals.clients, "Do update");  
   res.send('Ok');
 });
 
