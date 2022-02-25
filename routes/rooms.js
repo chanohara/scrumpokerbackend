@@ -22,14 +22,17 @@ router.get('/', function(req, res, next) {
 
 /* GET single room */
 router.get('/:roomId', function(req, res, next) {
-  db.all(`SELECT a.user_id AS userId , a.current_vote , b.revealed, b.ownerId , c.name , avg(a.current_vote) as average_vote 
+  db.all(`SELECT a.user_id AS userId , a.current_vote , b.revealed, b.ownerId , c.name , 
+          (SELECT avg(current_vote) as average_vote FROM session WHERE room_id = (?) AND current_vote > 0 ) average_vote
           FROM session as a INNER JOIN room as b ON a.room_id = b.Id 
-          INNER JOIN user as c ON a.user_id = c.Id WHERE a.room_id = (?) `, [req.params.roomId], (err, rows) => 
+          INNER JOIN user as c ON a.user_id = c.Id
+          WHERE a.room_id = (?) `, [req.params.roomId, req.params.roomId], (err, rows) => 
   {
     if (err) { throw(err); }
     res.status(200).json(rows);
   });
 });
+
 
 
 // Create a room
@@ -52,7 +55,7 @@ router.post('/', function (req, res) {
   });
 
   // create session for admin user
-  db.run(`INSERT INTO session(room_id,user_id,current_vote) VALUES (?,?,?)`, [roomId, userId, 'NULL'], function(err) {
+  db.run(`INSERT INTO session(room_id,user_id,current_vote) VALUES (?,?,?)`, [roomId, userId, 0], function(err) {
     if (err) {return console.log(err.message);}
     console.log(`Session for room ${roomId} and user ${userName} created`);
   });
@@ -74,7 +77,7 @@ router.post('/join', function(req, res, next) {
   });
   
   // create session for user
-  db.run(`INSERT INTO session(room_id,user_id,current_vote) VALUES (?,?,?)`, [roomId, userId, 'NULL'], function(err) {
+  db.run(`INSERT INTO session(room_id,user_id,current_vote) VALUES (?,?,?)`, [roomId, userId, 0], function(err) {
     if (err) {return console.log(err.message);}
     console.log(`Session for room ${roomId} and user ${userName} created`);
   }); 
