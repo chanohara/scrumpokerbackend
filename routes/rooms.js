@@ -1,6 +1,15 @@
 var express = require('express');
 var router = express.Router();
 var db = require("../database.js")
+const WebSocket = require("ws");
+
+const broadcast = (clients, message) => {
+  clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+          client.send(message);
+      }
+  });
+};
 
 /* GET rooms */
 router.get('/', function(req, res, next) {
@@ -68,7 +77,7 @@ router.post('/join', function(req, res, next) {
   db.run(`INSERT INTO session(room_id,user_id,current_vote) VALUES (?,?,?)`, [roomId, userId, 'NULL'], function(err) {
     if (err) {return console.log(err.message);}
     console.log(`Session for room ${roomId} and user ${userName} created`);
-  });
+  }); 
   res.status(200).json({userId : userId });
 });
 
@@ -121,6 +130,8 @@ router.post('/vote', function(req, res, next) {
     if (err) {return console.log(err.message);}
     console.log(`User ${req.body.userId} voted in room ${req.body.roomId} with ${req.body.vote}`);
   });  
+  
+  broadcast(req.app.locals.clients, "Do update");
   res.send('Ok');
 });
 
