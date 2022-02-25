@@ -13,8 +13,9 @@ router.get('/', function(req, res, next) {
 
 /* GET single room */
 router.get('/:roomId', function(req, res, next) {
-  db.all(`SELECT a.user_id AS userId , a.current_vote , b.revealed , c.name FROM session as a INNER JOIN 
-  room as b ON a.room_id = b.Id INNER JOIN user as c ON a.user_id = c.Id WHERE a.room_id = (?) `, [req.params.roomId], (err, rows) => 
+  db.all(`SELECT a.user_id AS userId , a.current_vote , b.revealed, b.ownerId , c.name , avg(a.current_vote) as average_vote 
+          FROM session as a INNER JOIN room as b ON a.room_id = b.Id 
+          INNER JOIN user as c ON a.user_id = c.Id WHERE a.room_id = (?) `, [req.params.roomId], (err, rows) => 
   {
     if (err) { throw(err); }
     res.status(200).json(rows);
@@ -92,8 +93,9 @@ router.post('/reveal', function(req, res, next) {
   //   res.status(500);
   //   return;
   // };  
+
   // Set room to revealed
-  db.run(`UPDATE room SET revealed = 1 WHERE roomId = (?)`, [req.body.roomId], function(err) {
+  db.run(`UPDATE room SET revealed = 1 WHERE Id = (?)`, [req.body.roomId], function(err) {
     if (err) {return console.log(err.message);}
     console.log(`Room ${req.body.roomId} revealed`);
   });  
