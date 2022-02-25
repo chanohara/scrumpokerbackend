@@ -21,10 +21,7 @@ router.post('/', function (req, res) {
   console.log(req.body);
   var userName = req.body.name;
   var roomId = Math.floor(Math.random() * 100000000);
-  
-  var userId;
-  if (!req.session.userId) { req.session.userId = Math.floor(Math.random() * 100000000); }
-  userId = req.session.userId;
+  var userId = Math.floor(Math.random() * 100000000);
 
   // insert room into table
   db.run(`INSERT INTO room(Id,ownerId,revealed) VALUES (?,?,?)`, [roomId, userId, 0], function(err) {
@@ -44,7 +41,7 @@ router.post('/', function (req, res) {
     console.log(`Session for room ${roomId} and user ${userName} created`);
   });
 
-  res.status(200).json({roomId: roomId});
+  res.status(200).json({roomId: roomId , userId : userId });
 })
 
 // Join a room 
@@ -52,9 +49,7 @@ router.post('/join', function(req, res, next) {
   var userName = req.body.name;
   var roomId = req.body.roomId;
 
-  var userId;
-  if (!req.session.userId) { req.session.userId = Math.floor(Math.random() * 100000000); }
-  userId = req.session.userId;
+  var userId =  Math.floor(Math.random() * 100000000); 
 
   // insert user
   db.run(`INSERT INTO user(Id,name) VALUES (?,?) ON CONFLICT (Id) DO UPDATE SET name = excluded.name`, [userId, userName], function(err) {
@@ -67,7 +62,7 @@ router.post('/join', function(req, res, next) {
     if (err) {return console.log(err.message);}
     console.log(`Session for room ${roomId} and user ${userName} created`);
   });
-  res.send('Ok');  
+  res.status(200).json({userId : userId });
 });
 
 
@@ -114,9 +109,9 @@ router.post('/reset', function(req, res, next) {
 
 // Voting
 router.post('/vote', function(req, res, next) {
-  db.run(`UPDATE session SET current_vote = (?) WHERE roomId = (?) AND userId = (?)`, [req.body.vote, req.body.roomId, req.session.userId], function(err) {
+  db.run(`UPDATE session SET current_vote = (?) WHERE roomId = (?) AND userId = (?)`, [req.body.vote, req.body.roomId, req.body.userId], function(err) {
     if (err) {return console.log(err.message);}
-    console.log(`User ${req.session.userId} voted in room ${req.body.roomId} with ${req.body.vote}`);
+    console.log(`User ${req.body.userId} voted in room ${req.body.roomId} with ${req.body.vote}`);
   });  
   res.send('Ok');
 });
