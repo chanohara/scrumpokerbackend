@@ -13,8 +13,14 @@ router.get('/', function(req, res, next) {
 
 /* GET single room */
 router.get('/:roomId', function(req, res, next) {
-  res.send(req.params.roomId);
+  db.all(`SELECT a.user_id AS userId , a.current_vote , b.revealed , c.name FROM session as a INNER JOIN 
+  room as b ON a.room_id = b.Id INNER JOIN user as c ON a.user_id = c.Id WHERE a.room_id = (?) `, [req.params.roomId], (err, rows) => 
+  {
+    if (err) { throw(err); }
+    res.status(200).json(rows);
+  });
 });
+
 
 // Create a room
 router.post('/', function (req, res) {
@@ -109,7 +115,7 @@ router.post('/reset', function(req, res, next) {
 
 // Voting
 router.post('/vote', function(req, res, next) {
-  db.run(`UPDATE session SET current_vote = (?) WHERE roomId = (?) AND userId = (?)`, [req.body.vote, req.body.roomId, req.body.userId], function(err) {
+  db.run(`UPDATE session SET current_vote = (?) WHERE room_id = (?) AND user_id = (?)`, [req.body.vote, req.body.roomId, req.body.userId], function(err) {
     if (err) {return console.log(err.message);}
     console.log(`User ${req.body.userId} voted in room ${req.body.roomId} with ${req.body.vote}`);
   });  
