@@ -19,9 +19,7 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.use(cors({
-  origin: 'http://localhost:3001'
-}));
+app.use(cors());
 
 app.use(logger('dev'));
 app.use(express.json());
